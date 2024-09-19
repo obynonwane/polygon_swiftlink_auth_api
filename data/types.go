@@ -7,3 +7,7 @@ type SignupPayload struct {
 	Phone     string `json:"phone"`
 	Password  string `json:"password"`
 }
+type LoginUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

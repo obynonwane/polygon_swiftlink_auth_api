@@ -3,8 +3,11 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
+
+	"github.com/obynonwane/polygon_swiftlink_auth_api/util"
 )
 
 // db timeout period
@@ -65,6 +68,13 @@ func (u *PostgresRepository) Signup(payload SignupPayload) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	//convert password to hash
+	hashPassword, err := util.HashPassword(payload.Password)
+	if err != nil {
+		log.Println("Error inserting user:", err)
+		return nil, errors.New("error hashing user password")
+	}
+
 	// Create the insert statement to add a new user to the 'users' table
 	query := `
 		INSERT INTO users (first_name, last_name, email, phone, password)
@@ -76,12 +86,12 @@ func (u *PostgresRepository) Signup(payload SignupPayload) (*User, error) {
 	var user User
 
 	// Execute the insert query and scan the returned row into the user struct
-	err := u.Conn.QueryRowContext(ctx, query,
+	err = u.Conn.QueryRowContext(ctx, query,
 		payload.FirstName,
 		payload.LastName,
 		payload.Email,
 		payload.Phone,
-		payload.Password,
+		hashPassword,
 	).Scan(
 		&user.ID,
 		&user.FirstName,
@@ -99,4 +109,41 @@ func (u *PostgresRepository) Signup(payload SignupPayload) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (u *PostgresRepository) GetUserWithEmail(email string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `SELECT id, email, first_name, last_name, password, verified, updated_at, created_at FROM users`
+
+	rows, err := u.Conn.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*User
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&user.Password,
+			&user.Verified,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			log.Println("Error scanning", err)
+			return nil, err
+		}
+
+		users = append(users, &user)
+	}
+
+	return nil, nil
 }

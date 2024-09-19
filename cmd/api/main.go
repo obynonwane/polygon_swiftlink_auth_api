@@ -12,6 +12,7 @@ import (
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/obynonwane/polygon_swiftlink_auth_api/data"
+	"github.com/obynonwane/polygon_swiftlink_auth_api/token"
 )
 
 const webPort = "80"
@@ -19,10 +20,27 @@ const webPort = "80"
 var counts int64
 
 type Config struct {
-	Repo data.Repository
+	Repo       data.Repository
+	tokenMaker token.Maker
+}
+
+type TokenType struct {
+	TokenSymmetricKey   string
+	AccessTokenDuration time.Duration
 }
 
 func main() {
+
+	//TokenSymmetricKey, AccessTokenDuration: Need to come from env
+	pasetoDetail := &TokenType{
+		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
+		AccessTokenDuration: 100 * time.Minute,
+	}
+
+	tokenMaker, err := token.NewPasetoMaker(pasetoDetail.TokenSymmetricKey)
+	if err != nil {
+		return
+	}
 
 	log.Println("Starting authentication service")
 
@@ -34,7 +52,8 @@ func main() {
 
 	//setup config
 	app := Config{
-		Repo: data.NewPostgresRepository(conn),
+		Repo:       data.NewPostgresRepository(conn),
+		tokenMaker: tokenMaker,
 	}
 
 	// define http server
@@ -44,7 +63,7 @@ func main() {
 	}
 
 	// start the server
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Panic(err)
 	}
