@@ -22,8 +22,9 @@ func (app *Config) routes() http.Handler {
 		MaxAge:           300,
 	}))
 
-	mux.Get("/api/v1/getusers", app.GetUsers)
 	mux.Post("/api/v1/signup", app.Signup)
+	mux.Post("/api/v1/login", app.Login)
+	mux.Get("/api/v1/getusers", app.GetUsers)
 	// Add the Prometheus metrics endpoint to the router
 	mux.Handle("/metrics", promhttp.Handler())
 

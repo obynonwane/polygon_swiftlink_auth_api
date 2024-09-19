@@ -115,35 +115,19 @@ func (u *PostgresRepository) GetUserWithEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `SELECT id, email, first_name, last_name, password, verified, updated_at, created_at FROM users`
+	stmt := `SELECT id, first_name, last_name, email, phone, password, updated_at, created_at FROM users WHERE email = $1 LIMIT 1;`
+	row := u.Conn.QueryRowContext(ctx, stmt, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
 
-	rows, err := u.Conn.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var users []*User
-
-	for rows.Next() {
-		var user User
-		err := rows.Scan(
-			&user.ID,
-			&user.Email,
-			&user.FirstName,
-			&user.LastName,
-			&user.Password,
-			&user.Verified,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		)
-		if err != nil {
-			log.Println("Error scanning", err)
-			return nil, err
-		}
-
-		users = append(users, &user)
-	}
-
-	return nil, nil
+	return &i, err
 }
