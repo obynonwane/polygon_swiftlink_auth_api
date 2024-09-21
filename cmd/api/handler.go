@@ -60,8 +60,6 @@ func (app *Config) Signup(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Login(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("reached the login of the auth service")
-
 	var req data.LoginUserRequest
 
 	err := app.readJSON(w, r, &req)
@@ -143,4 +141,8 @@ func (app *Config) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (app *Config) VerifyToken(w *http.ResponseWriter, r http.Request) {
+	// make a call to retrive the user
 }
