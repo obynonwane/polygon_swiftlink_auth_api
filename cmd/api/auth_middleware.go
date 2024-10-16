@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -76,6 +77,7 @@ func authMiddleware(tokenMaker token.Maker) func(http.Handler) http.Handler {
 
 func (app *Config) verifyToken(w http.ResponseWriter, r *http.Request) {
 
+	log.Println("The second printing")
 	authPayload, _ := r.Context().Value(authorizationPayloadKey).(*token.Payload)
 
 	user, err := app.Repo.GetUserWithEmail(authPayload.Email)

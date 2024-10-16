@@ -27,6 +27,7 @@ func (app *Config) routes() http.Handler {
 	mux.Post("/api/v1/login", app.Login)
 	mux.Get("/api/v1/all-users", app.GetUsers)
 	mux.Get("/api/v1/verify-user-token", app.HandleVerifyToken)
+
 	// Add the Prometheus metrics endpoint to the router
 	mux.Handle("/metrics", promhttp.Handler())
 

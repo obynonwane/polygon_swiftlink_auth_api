@@ -26,6 +26,10 @@ type CreateUserResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+func (app *Config) VerifyToken(w *http.ResponseWriter, r http.Request) {
+	// make a call to retrive the user
+}
+
 func (app *Config) Signup(w http.ResponseWriter, r *http.Request) {
 
 	var requestPayload data.SignupPayload
@@ -120,6 +124,8 @@ func (app *Config) Login(w http.ResponseWriter, r *http.Request) {
 }
 func (app *Config) GetUsers(w http.ResponseWriter, r *http.Request) {
 
+	log.Println("welcome here it reached here")
+
 	users, err := app.Repo.GetAll()
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -141,8 +147,4 @@ func (app *Config) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusAccepted, payload)
-}
-
-func (app *Config) VerifyToken(w *http.ResponseWriter, r http.Request) {
-	// make a call to retrive the user
 }
